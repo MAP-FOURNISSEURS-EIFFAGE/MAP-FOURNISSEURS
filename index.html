@@ -1,0 +1,610 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MAP FOURNISSEURS</title>
+<style>
+:root {
+  --blue:#E30613; --blue2:#000000; --light:#F2F2F2; --border:#D9D9D9;
+  --text:#000000; --muted:#666666; --green:#F2F2F2; --danger:#b91c1c;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,Helvetica,sans-serif;background:#f6f8fb;color:var(--text)}
+header{background:var(--blue);color:white;padding:22px 18px}
+header h1{margin:0;font-size:26px}
+header p{margin:6px 0 0;opacity:.9}
+.container{max-width:1200px;margin:0 auto;padding:18px}
+.toolbar{display:grid;grid-template-columns:2fr 2fr auto auto;gap:12px;background:white;padding:16px;border-radius:12px;box-shadow:0 1px 4px #0001;position:sticky;top:0;z-index:5}
+label{display:block;font-size:12px;font-weight:700;margin-bottom:5px;color:var(--muted)}
+select,input,textarea{width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:8px;background:white;font:inherit}
+button{border:0;border-radius:8px;padding:10px 14px;font-weight:700;cursor:pointer}
+.primary{background:var(--blue2);color:white}
+.secondary{background:#e9eef4;color:#203040}
+.danger{background:#fee2e2;color:var(--danger)}
+.stats{margin:14px 0;font-weight:700}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(330px,1fr));gap:14px}
+.card{background:white;border:1px solid var(--border);border-radius:12px;padding:16px;box-shadow:0 1px 3px #0000000a}
+.card h3{margin:0 0 8px;font-size:19px}
+.badge{display:inline-block;padding:4px 8px;border-radius:999px;background:var(--green);font-size:12px;font-weight:700;margin-bottom:10px}
+.contact{border-top:1px solid #edf1f5;padding-top:9px;margin-top:9px}
+.contact a{color:#0b63b6;text-decoration:none;font-weight:700}
+.muted{color:var(--muted)}
+.actions{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+.hidden{display:none!important}
+.modal-bg{position:fixed;inset:0;background:#0008;display:flex;align-items:center;justify-content:center;padding:20px;z-index:20}
+.modal{background:white;border-radius:14px;padding:20px;max-width:760px;width:100%;max-height:90vh;overflow:auto}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.modal h2{margin-top:0}
+.contact-edit{background:#f8fafc;border:1px solid var(--border);padding:12px;border-radius:10px;margin:10px 0}
+.footer-note{margin-top:22px;color:var(--muted);font-size:13px}
+@media(max-width:760px){
+  .toolbar{grid-template-columns:1fr}
+  .grid2{grid-template-columns:1fr}
+}
+
+.card{position:relative;overflow:hidden}
+.card h3{padding-right:82px}
+.activity-icon{
+  position:absolute;top:12px;right:14px;width:66px;height:66px;
+  display:flex;align-items:center;justify-content:center;
+}
+.activity-icon img,.activity-icon svg{max-width:58px;max-height:58px;display:block}
+.activity-icon::after{
+  content:"";position:absolute;bottom:0;width:44px;height:3px;background:#E30613;border-radius:3px;
+}
+.contacts-toggle{
+  margin-top:10px;background:#000;color:#fff;border-radius:8px;padding:8px 12px;
+}
+.contacts-toggle:hover{background:#E30613}
+.contacts-drawer{
+  margin-top:10px;border-top:1px solid #edf1f5;padding-top:12px;
+  animation:fadeIn .15s ease-out;
+}
+@keyframes fadeIn{from{opacity:0;transform:translateY(-3px)}to{opacity:1;transform:translateY(0)}}
+.supplier-brand{
+  display:flex;align-items:center;gap:12px;margin-bottom:10px;
+  padding:10px;background:#fafafa;border:1px solid var(--border);border-radius:10px;
+}
+.supplier-logo{
+  width:58px;height:58px;object-fit:contain;background:white;border-radius:8px;
+  border:1px solid #eee;padding:5px;
+}
+.logo-fallback{
+  width:58px;height:58px;border-radius:8px;background:#000;color:#fff;
+  display:flex;align-items:center;justify-content:center;font-weight:800;font-size:17px;
+}
+.brand-name{font-weight:800}
+.brand-site{font-size:12px;color:var(--muted);margin-top:3px}
+.contact{border-top:1px solid #edf1f5;padding-top:9px;margin-top:9px}
+.contact:first-of-type{border-top:0}
+
+
+/* ===== V4 : pictos activités uniformes + logo fournisseur manuel ===== */
+.activity-icon{
+  position:absolute;
+  top:12px;
+  right:14px;
+  width:64px;
+  height:64px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+.activity-icon svg,
+.activity-icon img{
+  width:54px !important;
+  height:54px !important;
+  max-width:54px !important;
+  max-height:54px !important;
+  object-fit:contain;
+}
+.activity-icon::after{
+  content:"";
+  position:absolute;
+  bottom:0;
+  width:40px;
+  height:3px;
+  background:#E30613;
+  border-radius:2px;
+}
+
+.supplier-brand{display:none!important}
+.supplier-logo{display:none!important}
+.logo-fallback{display:none!important}
+.brand-name{display:none!important}
+.brand-site{display:none!important}
+
+.website-line{
+  margin-top:12px;
+  padding-top:10px;
+  border-top:1px solid #edf1f5;
+  font-size:13px;
+}
+.website-line a{
+  color:#E30613;
+  font-weight:700;
+  text-decoration:none;
+}
+.website-line a:hover{text-decoration:underline}
+
+.manual-logo-card{
+  margin-top:10px;
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+.manual-logo-card img{
+  width:72px;
+  height:48px;
+  object-fit:contain;
+  background:#fff;
+  border:1px solid #e5e7eb;
+  border-radius:7px;
+  padding:4px;
+}
+.logo-upload-row{
+  display:flex;
+  gap:10px;
+  align-items:center;
+  flex-wrap:wrap;
+}
+.logo-preview{
+  width:120px;
+  height:70px;
+  object-fit:contain;
+  border:1px solid #d9d9d9;
+  border-radius:8px;
+  background:#fff;
+  padding:5px;
+}
+.logo-preview-wrap{
+  margin-top:8px;
+}
+
+
+.authbar{max-width:1200px;margin:10px auto 0;padding:0 18px;display:flex;justify-content:flex-end;gap:8px;align-items:center;flex-wrap:wrap}
+.authbar input{width:210px;background:white}
+.authbar button{background:#000;color:#fff}
+.authbar .status{color:#fff;font-size:13px}
+.sync-status{font-size:12px;color:var(--muted);margin:8px 0}
+
+.badge + .badge{margin-left:6px}
+</style>
+</head>
+<body>
+<header>
+  <div class="container">
+<img src="data:image/png;base64,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" class="logo" alt="Eiffage Énergie Systèmes">
+    <h1>MAP FOURNISSEURS</h1>
+    <p>Activités, fournisseurs, accords cadre et contacts</p>
+  </div>
+
+<div class="authbar">
+  <span id="authStatus" class="status">Consultation publique</span>
+  <input id="loginEmail" type="email" placeholder="E-mail">
+  <input id="loginPassword" type="password" placeholder="Mot de passe">
+  <button id="loginBtn">Connexion</button>
+  <button id="logoutBtn" class="hidden">Déconnexion</button>
+</div>
+</header>
+
+<div class="container">
+  <div class="toolbar">
+    <div>
+      <label for="activitySelect">Activité</label>
+      <select id="activitySelect"></select>
+    </div>
+    <div>
+      <label for="searchInput">Recherche</label>
+      <input id="searchInput" placeholder="Fournisseur, contact, e-mail…">
+    </div>
+    <button class="primary" id="addSupplierBtn">+ Fournisseur</button>
+    <button class="secondary" id="addActivityBtn">+ Activité</button>
+  </div>
+
+  <div class="sync-status" id="syncStatus">Connexion à Supabase…</div><div class="stats" id="stats"></div>
+  <div class="cards" id="cards"></div>
+
+  <div class="footer-note">
+    Les données sont centralisées en ligne dans Supabase. La consultation est publique ; la modification nécessite une connexion.
+    <div class="actions">
+      <button class="secondary" id="exportBtn" style="display:none">Exporter JSON</button>
+      <button class="secondary" id="importBtn" style="display:none">Importer JSON</button>
+      <button class="danger" id="resetBtn" style="display:none">Réinitialiser</button>
+      <input id="importFile" type="file" accept=".json" class="hidden">
+    </div>
+  </div>
+</div>
+
+<div id="modalRoot"></div>
+
+
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SUPABASE_URL="https://lvjpdrkqbsnwkciftisa.supabase.co";
+const SUPABASE_PUBLISHABLE_KEY="sb_publishable_5nCg0085uqXvFbN21Jf_BA_vfvhL8DY";
+const sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY);
+const SUPPLIER_DOMAINS={"LEDVANCE": "ledvance.com", "SIGNIFY": "signify.com", "SICAME": "sicame-group.com", "CAHORS": "groupe-cahors.com", "CEMEX": "cemex.fr", "EQIOM": "eqiom.com", "LEGRAND": "legrand.fr", "SCHNEIDER": "se.com", "HELUKABEL": "helukabel.com", "NEXANS": "nexans.com", "PRYSMIAN": "prysmian.com", "REXEL": "rexel.fr", "SONEPAR": "sonepar.fr", "DEPAGNE": "depagne.fr", "EXERTIS CONNECT": "exertis-connect.fr", "GHM": "ghm.fr", "PETITJEAN": "petitjean.fr", "VALMONT": "valmontstructures.com", "LACROIX SMARTCITY": "lacroix-city.com", "FOLAN": "folan.net", "NEKLAN": "neklan.fr", "TETRADIS": "tetradis.com", "CHAUSSON": "chausson.fr", "PROLIANS TP": "prolians.fr", "PUM": "pum.fr", "SOVAL": "soval.fr", "KILOUTOU": "kiloutou.fr", "LOXAM": "loxam.fr", "SALTI": "salti.fr", "DISANO": "disano.it", "ECLATEC": "eclatec.com", "INMAC": "inmac-wstore.com", "AXIMUM": "aximum.fr", "FARECO": "fareco.com", "SWARCO": "swarco.com", "EATON": "eaton.com", "INFOSEC": "infosec-ups.com", "SOCOMEC": "socomec.com", "SLAT": "slat.fr", "ELECTROBETON": "electrobeton.fr", "STRADAL": "stradal.fr", "DESCOURS & CABAUD": "descours-cabaud.com", "HILTI": "hilti.fr", "LEGALLAIS": "legallais.com", "SETIN": "setin.fr", "SOCODA": "socoda.fr", "FS COM": "fs.com"};
+let db={activities:[],suppliers:[]};
+let currentUser=null;
+
+function esc(v=""){return String(v).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));}
+function normalizeSupplierName(name=""){return String(name).replace(/\s*\([^)]*\)\s*/g," ").replace(/\s*\/.*$/,"").trim().toUpperCase();}
+function domainForSupplier(s){
+  if(s.website)return String(s.website).replace(/^https?:\/\//i,"").replace(/^www\./i,"").split("/")[0];
+  const n=normalizeSupplierName(s.name);
+  if(SUPPLIER_DOMAINS[n])return SUPPLIER_DOMAINS[n];
+  for(const [k,d] of Object.entries(SUPPLIER_DOMAINS))if(n.includes(k)||k.includes(n))return d;
+  return "";
+}
+function activityIconSVG(activity="") {
+  const a = activity.toLowerCase();
+
+  const svg = inner => `
+    <svg viewBox="0 0 64 64" aria-hidden="true"
+         fill="none" stroke="#000" stroke-width="3.2"
+         stroke-linecap="round" stroke-linejoin="round">
+      ${inner}
+    </svg>`;
+
+  // Accessoires & sources EP / luminaires / candélabres : lampadaire
+  if (a.includes("sources ep") || a.includes("luminaires") || a.includes("candélabres")) {
+    return svg(`
+      <path d="M22 55h18M29 55V25c0-7 4-12 11-12h8"/>
+      <path d="M47 13h7v7h-9c-3 0-5-2-5-5v-2"/>
+      <path d="M46 22l-4 5M51 23l1 6M56 21l4 4"/>
+    `);
+  }
+
+  // Réseaux aériens / poteaux
+  if (a.includes("réseaux aériens") || a.includes("poteaux bois") || a.includes("poteaux béton")) {
+    return svg(`
+      <path d="M32 8v48M20 19h24M23 29h18"/>
+      <path d="M14 17l6 2M50 17l-6 2M18 27l5 2M46 27l-5 2"/>
+    `);
+  }
+
+  // Réseaux souterrains : coupe de tranchée avec fourreau/câble
+  if (a.includes("réseaux souterrains")) {
+    return svg(`
+      <path d="M7 15h12l6 10h14l6-10h12"/>
+      <path d="M8 15l8 38h32l8-38"/>
+      <path d="M15 24l5 4M12 33l6 3M49 24l-5 4M52 33l-6 3"/>
+      <path d="M20 43h24"/>
+      <circle cx="27" cy="43" r="5"/>
+      <circle cx="37" cy="43" r="5"/>
+    `);
+  }
+
+  // Barrières chantier
+  if (a.includes("barrières chantier")) {
+    return svg(`
+      <path d="M10 22h44v17H10z"/>
+      <path d="M15 22l10 17M29 22l10 17M43 22l10 17"/>
+      <path d="M15 39v13M49 39v13"/>
+    `);
+  }
+
+  // Béton : camion toupie
+  if (a === "béton" || a.includes("béton")) {
+    return svg(`
+      <circle cx="19" cy="49" r="5"/><circle cx="45" cy="49" r="5"/>
+      <path d="M8 44h42l5 4v1H50"/>
+      <path d="M38 28h12l6 13H38z"/>
+      <path d="M12 24l22 5-4 14H13z"/>
+      <path d="M15 24c4-8 16-9 22 0"/>
+      <path d="M19 29l9 3"/>
+    `);
+  }
+
+  // Bornes contrôle accès : borne + barrière
+  if (a.includes("contrôle accès")) {
+    return svg(`
+      <rect x="10" y="23" width="10" height="29" rx="2"/>
+      <path d="M20 31h31"/>
+      <path d="M51 31v7"/>
+      <path d="M25 31l5 4 5-4 5 4 5-4"/>
+      <path d="M13 20v-5h4v5"/>
+    `);
+  }
+
+  // Bornes IRVE : pompe avec prise à la place du pistolet
+  if (a.includes("irve")) {
+    return svg(`
+      <rect x="13" y="8" width="28" height="47" rx="3"/>
+      <rect x="19" y="14" width="16" height="11" rx="1"/>
+      <path d="M27 30l-5 8h6l-3 10 10-14h-7l3-4"/>
+      <path d="M41 23c8 0 10 5 10 11v8"/>
+      <path d="M48 42h8v8h-8z"/>
+      <path d="M50 42v-5M54 42v-5"/>
+      <path d="M10 58h35"/>
+    `);
+  }
+
+  // Câbles : touret
+  if (a === "câbles" || a.includes("câbles")) {
+    return svg(`
+      <ellipse cx="32" cy="16" rx="17" ry="6"/>
+      <ellipse cx="32" cy="48" rx="17" ry="6"/>
+      <path d="M15 16v32M49 16v32"/>
+      <path d="M20 22c8 4 16 4 24 0M20 28c8 4 16 4 24 0M20 34c8 4 16 4 24 0M20 40c8 4 16 4 24 0"/>
+    `);
+  }
+
+  // Caméras
+  if (a.includes("caméras")) {
+    return svg(`
+      <path d="M8 22h35l8 8-8 12H15z"/>
+      <circle cx="25" cy="32" r="8"/>
+      <circle cx="25" cy="32" r="3"/>
+      <path d="M43 42l5 8M49 50h8"/>
+    `);
+  }
+
+  // Coffrets candélabres
+  if (a.includes("coffrets")) {
+    return svg(`
+      <rect x="17" y="10" width="30" height="44" rx="2"/>
+      <path d="M21 15h22M32 20v16"/>
+      <path d="M32 25l-5 8h6l-3 9 9-13h-6l3-4"/>
+    `);
+  }
+
+  // Fibre optique : fibre ouverte avec plusieurs brins
+  if (a.includes("fibre")) {
+    return svg(`
+      <path d="M10 34h18"/>
+      <path d="M28 34c7 0 8-16 18-19M28 34c9 0 11-7 22-7M28 34c9 0 11 7 22 7M28 34c7 0 8 16 18 19"/>
+      <circle cx="49" cy="13" r="2"/><circle cx="53" cy="27" r="2"/>
+      <circle cx="53" cy="41" r="2"/><circle cx="49" cy="55" r="2"/>
+      <path d="M15 29v10M20 29v10M25 29v10"/>
+    `);
+  }
+
+  // Fournitures VRD : mini-pelle
+  if (a.includes("vrd")) {
+    return svg(`
+      <path d="M9 48h27M13 42h22l4 6H11z"/>
+      <circle cx="16" cy="49" r="3"/><circle cx="29" cy="49" r="3"/>
+      <path d="M20 42V29h12l6 13"/>
+      <path d="M31 29l11-11 8 4"/>
+      <path d="M50 22l-4 13 8 4 4-13z"/>
+    `);
+  }
+
+  // Locations : nacelle 25 m
+  if (a.includes("locations")) {
+    return svg(`
+      <circle cx="18" cy="50" r="4"/><circle cx="32" cy="50" r="4"/>
+      <path d="M10 46h27l4 4H10z"/>
+      <path d="M25 45l7-15 11-8 7 3"/>
+      <path d="M48 16v8M43 16h10v6H43z"/>
+      <path d="M32 30l9 3"/>
+    `);
+  }
+
+  // Matériel informatique
+  if (a.includes("informatique")) {
+    return svg(`
+      <rect x="10" y="10" width="44" height="32" rx="3"/>
+      <path d="M25 50h14M32 42v8"/>
+      <path d="M15 55h34"/>
+      <path d="M18 18h28v16H18z"/>
+    `);
+  }
+
+  // Matériel SLT : feu tricolore
+  if (a.includes("slt")) {
+    return svg(`
+      <rect x="20" y="8" width="24" height="48" rx="5"/>
+      <circle cx="32" cy="19" r="6"/>
+      <circle cx="32" cy="32" r="6"/>
+      <circle cx="32" cy="45" r="6"/>
+      <path d="M20 20h-6M20 32h-6M20 44h-6M44 20h6M44 32h6M44 44h6"/>
+    `);
+  }
+
+  // Matériel électrique
+  if (a.includes("matériel électrique")) {
+    return svg(`
+      <path d="M35 7L18 34h13l-3 23 18-30H33z"/>
+    `);
+  }
+
+  // Onduleurs
+  if (a.includes("onduleurs")) {
+    return svg(`
+      <rect x="17" y="8" width="30" height="48" rx="3"/>
+      <path d="M23 32c4-8 8 8 12 0s8 8 12 0"/>
+      <path d="M24 17h16"/>
+    `);
+  }
+
+  // Pack batterie
+  if (a.includes("pack batterie") || a.includes("batterie")) {
+    return svg(`
+      <rect x="13" y="18" width="38" height="34" rx="3"/>
+      <path d="M22 18v-6h8v6M36 18v-6h8v6"/>
+      <path d="M23 35h8M27 31v8M38 35h8"/>
+    `);
+  }
+
+  // Postes & transformateurs
+  if (a.includes("transformateurs") || a.includes("poste")) {
+    return svg(`
+      <rect x="9" y="25" width="46" height="28" rx="2"/>
+      <path d="M16 25v-9h8v9M40 25v-9h8v9"/>
+      <path d="M20 16v-5M44 16v-5"/>
+      <path d="M32 28l-5 9h6l-3 10 9-14h-7l3-5"/>
+    `);
+  }
+
+  // Quincaillerie & outillage : marteau + tournevis
+  if (a.includes("quincaillerie") || a.includes("outillage")) {
+    return svg(`
+      <path d="M13 48l20-20"/>
+      <path d="M9 44l8 8"/>
+      <path d="M28 13l9 9-7 7-9-9z"/>
+      <path d="M37 47l14-23"/>
+      <path d="M49 19l6 4-4 6-6-4z"/>
+      <path d="M34 52l6 4"/>
+    `);
+  }
+
+  // Switchs
+  if (a.includes("switch")) {
+    return svg(`
+      <rect x="7" y="18" width="50" height="28" rx="3"/>
+      <rect x="13" y="27" width="7" height="7"/>
+      <rect x="23" y="27" width="7" height="7"/>
+      <rect x="33" y="27" width="7" height="7"/>
+      <rect x="43" y="27" width="7" height="7"/>
+      <circle cx="13" cy="40" r="1"/><circle cx="18" cy="40" r="1"/>
+    `);
+  }
+
+  // Fallback
+  return svg(`
+    <rect x="12" y="12" width="40" height="40" rx="7"/>
+    <path d="M21 24h22M21 32h22M21 40h15"/>
+  `);
+}
+function editor(){return !!currentUser;}
+function setSync(t,e=false){const x=document.getElementById("syncStatus");x.textContent=t;x.style.color=e?"#b91c1c":"";}
+
+async function loadDB(){
+  setSync("Chargement de la base…");
+  const [ar,sr,cr]=await Promise.all([
+    sb.from("activities").select("id,name").order("name"),
+    sb.from("suppliers").select("id,activity_id,name,accord_cadre,catalogue,notes,website,logo_data").order("name"),
+    sb.from("contacts").select("id,supplier_id,name,role,email,phone,sort_order").order("sort_order")
+  ]);
+  const err=ar.error||sr.error||cr.error;
+  if(err){console.error(err);setSync("Erreur Supabase : "+err.message,true);return;}
+  const acts=ar.data||[], by={};
+  for(const c of (cr.data||[]))(by[c.supplier_id]??=[]).push({id:c.id,name:c.name||"",role:c.role||"",email:c.email||"",phone:c.phone||""});
+  db.activities=acts;
+  db.suppliers=(sr.data||[]).map(s=>({
+    id:s.id,activityId:s.activity_id,activity:(acts.find(a=>a.id===s.activity_id)||{}).name||"",
+    name:s.name,accordCadre:!!s.accord_cadre,catalogue:s.catalogue||"",notes:s.notes||"",website:s.website||"",logo:s.logo_data||"",contacts:by[s.id]||[]
+  }));
+  populateActivities();render();setSync("Données synchronisées ✓");
+}
+
+function populateActivities(){
+  const sel=document.getElementById("activitySelect"),prev=sel.value;
+  sel.innerHTML='<option value="">Toutes les activités</option>'+db.activities.map(a=>`<option value="${esc(a.name)}">${esc(a.name)}</option>`).join("");
+  if(prev&&db.activities.some(a=>a.name===prev))sel.value=prev;
+}
+
+function render(){
+  const act=document.getElementById("activitySelect").value,q=document.getElementById("searchInput").value.trim().toLowerCase();
+  let list=db.suppliers.filter(s=>!act||s.activity===act);
+  if(q)list=list.filter(s=>[s.name,s.activity,s.accordCadre?"oui":"non",s.catalogue,s.notes,s.website||"",...(s.contacts||[]).flatMap(c=>[c.name,c.role,c.email,c.phone])].join(" ").toLowerCase().includes(q));
+  document.getElementById("stats").textContent=`${list.length} fournisseur${list.length>1?"s":""}`;
+  document.getElementById("addSupplierBtn").style.display=editor()?"":"none";
+  document.getElementById("addActivityBtn").style.display=editor()?"":"none";
+  const cards=document.getElementById("cards");
+  if(!list.length){cards.innerHTML='<div class="card"><strong>Aucun fournisseur trouvé.</strong></div>';return;}
+  cards.innerHTML=list.map(s=>{
+    const domain=domainForSupplier(s),url=domain?`https://${domain}`:"",count=(s.contacts||[]).length;
+    return `<article class="card">
+      <div class="activity-icon">${activityIconSVG(s.activity)}</div>
+      <h3>${esc(s.name)}</h3><div class="muted">${esc(s.activity)}</div>
+      <div class="badge">Accord cadre : ${s.accordCadre ? "Oui" : "Non"}</div>${s.catalogue ? `<div class="badge">Catalogue : ${esc(s.catalogue === "Catalogue interne" ? "Interne" : s.catalogue)}</div>` : ""}
+      ${url?`<div class="website-line">Site web : <a href="${esc(url)}" target="_blank" rel="noopener">${esc(domain)} ↗</a></div>`:""}
+      ${s.logo?`<div class="manual-logo-card"><img src="${s.logo}" alt="Logo ${esc(s.name)}"></div>`:""}
+      <button class="contacts-toggle" onclick="toggleContacts('${s.id}')">Contacts (${count})</button>
+      <div id="contacts-${s.id}" class="contacts-drawer hidden">
+        ${count?s.contacts.map(c=>`<div class="contact"><strong>${esc(c.name||"Contact")}</strong>${c.role?` — ${esc(c.role)}`:""}<br>${c.email?`<a href="mailto:${esc(c.email)}">${esc(c.email)}</a><br>`:""}${c.phone?`<span>${esc(c.phone)}</span>`:""}</div>`).join(""):'<div class="muted">Aucun contact renseigné</div>'}
+      </div>
+      ${s.notes?`<p>${esc(s.notes)}</p>`:""}
+      ${editor()?`<div class="actions"><button class="secondary" onclick="editSupplier('${s.id}')">Modifier</button><button class="danger" onclick="deleteSupplier('${s.id}')">Supprimer</button></div>`:""}
+    </article>`;
+  }).join("");
+}
+window.toggleContacts=id=>{const e=document.getElementById(`contacts-${id}`);if(e)e.classList.toggle("hidden");};
+
+async function addActivity(){
+  if(!editor())return;
+  const name=prompt("Nom de la nouvelle activité :");if(!name||!name.trim())return;
+  const r=await sb.from("activities").insert({name:name.trim()});
+  if(r.error)return alert(r.error.message);await loadDB();
+}
+
+function supplierModal(supplier=null){
+  if(!editor())return;
+  const editing=!!supplier,s=supplier?structuredClone(supplier):{id:null,activity:document.getElementById("activitySelect").value||db.activities[0]?.name||"",name:"",accordCadre:false,catalogue:"",notes:"",website:"",logo:"",contacts:[]};
+  const root=document.getElementById("modalRoot");
+  root.innerHTML=`<div class="modal-bg"><div class="modal">
+  <h2>${editing?"Modifier le fournisseur":"Ajouter un fournisseur"}</h2>
+  <div class="grid2">
+    <div><label>Activité</label><select id="mActivity">${db.activities.map(a=>`<option value="${a.id}" ${a.name===s.activity?"selected":""}>${esc(a.name)}</option>`).join("")}</select></div>
+    <div><label>Fournisseur</label><input id="mName" value="${esc(s.name)}"></div>
+    <div><label>Accord cadre</label>
+      <select id="mAccordCadre">
+        <option value="false" ${!s.accordCadre?"selected":""}>Non</option>
+        <option value="true" ${s.accordCadre?"selected":""}>Oui</option>
+      </select>
+    </div>
+    <div><label>Catalogue</label>
+      <select id="mCatalogue">
+        <option value="" ${!s.catalogue?"selected":""}>Aucun</option>
+        <option value="Catalogue interne" ${s.catalogue==="Catalogue interne"?"selected":""}>Catalogue interne</option>
+        <option value="Punchout" ${s.catalogue==="Punchout"?"selected":""}>Punchout</option>
+      </select>
+    </div>
+    <div><label>Notes / Adresse</label><input id="mNotes" value="${esc(s.notes)}"></div>
+    <div><label>Site web / domaine</label><input id="mWebsite" placeholder="ex. rexel.fr" value="${esc(s.website||"")}"></div>
+    <div><label>Logo fournisseur</label><input id="mLogoFile" type="file" accept="image/png,image/jpeg,image/webp,image/svg+xml"><div id="logoPreviewWrap" class="${s.logo?"":"hidden"}"><img id="logoPreview" class="logo-preview" src="${s.logo||""}"></div><button type="button" class="secondary" id="removeLogoBtn">Retirer le logo</button></div>
+  </div>
+  <h3>Contacts</h3><div id="contactEditor"></div><button class="secondary" id="addContactBtn">+ Ajouter un contact</button>
+  <div class="actions" style="justify-content:flex-end"><button class="secondary" id="cancelBtn">Annuler</button><button class="primary" id="saveBtn">Enregistrer</button></div>
+  </div></div>`;
+  let contacts=(s.contacts||[]).map(c=>({...c})),logoData=s.logo||"";
+  function draw(){
+    const ce=document.getElementById("contactEditor");
+    ce.innerHTML=contacts.map((c,i)=>`<div class="contact-edit"><div class="grid2"><div><label>Nom</label><input data-i="${i}" data-k="name" value="${esc(c.name||"")}"></div><div><label>Fonction / Service</label><input data-i="${i}" data-k="role" value="${esc(c.role||"")}"></div><div><label>E-mail</label><input data-i="${i}" data-k="email" value="${esc(c.email||"")}"></div><div><label>Téléphone</label><input data-i="${i}" data-k="phone" value="${esc(c.phone||"")}"></div></div><button class="danger" onclick="removeContact(${i})">Supprimer ce contact</button></div>`).join("");
+    ce.querySelectorAll("input").forEach(x=>x.oninput=e=>contacts[+e.target.dataset.i][e.target.dataset.k]=e.target.value);
+  }
+  window.removeContact=i=>{contacts.splice(i,1);draw();};draw();
+  document.getElementById("addContactBtn").onclick=()=>{contacts.push({name:"",role:"",email:"",phone:""});draw();};
+  document.getElementById("cancelBtn").onclick=()=>root.innerHTML="";
+  document.getElementById("mLogoFile").onchange=e=>{const f=e.target.files?.[0];if(!f)return;if(f.size>700*1024){alert("Logo limité à 700 ko.");e.target.value="";return;}const rd=new FileReader();rd.onload=()=>{logoData=rd.result;document.getElementById("logoPreview").src=logoData;document.getElementById("logoPreviewWrap").classList.remove("hidden");};rd.readAsDataURL(f);};
+  document.getElementById("removeLogoBtn").onclick=()=>{logoData="";document.getElementById("logoPreviewWrap").classList.add("hidden");};
+  document.getElementById("saveBtn").onclick=async()=>{
+    const name=document.getElementById("mName").value.trim();if(!name)return alert("Nom obligatoire.");
+    const payload={activity_id:document.getElementById("mActivity").value,name,accord_cadre:document.getElementById("mAccordCadre").value==="true",catalogue:document.getElementById("mCatalogue").value,notes:document.getElementById("mNotes").value.trim(),website:document.getElementById("mWebsite").value.trim(),logo_data:logoData};
+    let id=s.id;
+    if(editing){let r=await sb.from("suppliers").update(payload).eq("id",s.id);if(r.error)return alert(r.error.message);r=await sb.from("contacts").delete().eq("supplier_id",s.id);if(r.error)return alert(r.error.message);}
+    else{const r=await sb.from("suppliers").insert(payload).select("id").single();if(r.error)return alert(r.error.message);id=r.data.id;}
+    const rows=contacts.filter(c=>c.name||c.role||c.email||c.phone).map((c,i)=>({supplier_id:id,name:c.name||"",role:c.role||"",email:c.email||"",phone:c.phone||"",sort_order:i}));
+    if(rows.length){const r=await sb.from("contacts").insert(rows);if(r.error)return alert(r.error.message);}
+    root.innerHTML="";await loadDB();
+  };
+}
+window.editSupplier=id=>supplierModal(db.suppliers.find(s=>s.id===id));
+window.deleteSupplier=async id=>{if(!editor())return;const s=db.suppliers.find(x=>x.id===id);if(!confirm(`Supprimer ${s.name} ?`))return;const r=await sb.from("suppliers").delete().eq("id",id);if(r.error)return alert(r.error.message);await loadDB();};
+
+async function updateAuthUI(){
+  const r=await sb.auth.getUser();currentUser=r.data.user||null;
+  document.getElementById("authStatus").textContent=currentUser?`Connecté : ${currentUser.email}`:"Consultation publique";
+  document.getElementById("loginBtn").classList.toggle("hidden",!!currentUser);
+  document.getElementById("logoutBtn").classList.toggle("hidden",!currentUser);
+  document.getElementById("loginEmail").classList.toggle("hidden",!!currentUser);
+  document.getElementById("loginPassword").classList.toggle("hidden",!!currentUser);
+  render();
+}
+document.getElementById("loginBtn").onclick=async()=>{const email=document.getElementById("loginEmail").value.trim(),password=document.getElementById("loginPassword").value;if(!email||!password)return alert("E-mail et mot de passe requis.");const r=await sb.auth.signInWithPassword({email,password});if(r.error)return alert(r.error.message);await updateAuthUI();await loadDB();};
+document.getElementById("logoutBtn").onclick=async()=>{await sb.auth.signOut();await updateAuthUI();};
+document.getElementById("activitySelect").onchange=render;
+document.getElementById("searchInput").oninput=render;
+document.getElementById("addSupplierBtn").onclick=()=>supplierModal();
+document.getElementById("addActivityBtn").onclick=addActivity;
+(async()=>{await updateAuthUI();await loadDB();})();
+</script>
+
+</body>
+</html>
