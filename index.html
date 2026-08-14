@@ -169,6 +169,7 @@ button{border:0;border-radius:8px;padding:10px 14px;font-weight:700;cursor:point
 .authbar .status{color:#fff;font-size:13px}
 .sync-status{font-size:12px;color:var(--muted);margin:8px 0}
 
+.badge + .badge{margin-left:6px}
 </style>
 </head>
 <body>
@@ -477,7 +478,7 @@ async function loadDB(){
   setSync("Chargement de la base…");
   const [ar,sr,cr]=await Promise.all([
     sb.from("activities").select("id,name").order("name"),
-    sb.from("suppliers").select("id,activity_id,name,accord,notes,website,logo_data").order("name"),
+    sb.from("suppliers").select("id,activity_id,name,accord_cadre,catalogue,notes,website,logo_data").order("name"),
     sb.from("contacts").select("id,supplier_id,name,role,email,phone,sort_order").order("sort_order")
   ]);
   const err=ar.error||sr.error||cr.error;
@@ -487,7 +488,7 @@ async function loadDB(){
   db.activities=acts;
   db.suppliers=(sr.data||[]).map(s=>({
     id:s.id,activityId:s.activity_id,activity:(acts.find(a=>a.id===s.activity_id)||{}).name||"",
-    name:s.name,accord:s.accord||"",notes:s.notes||"",website:s.website||"",logo:s.logo_data||"",contacts:by[s.id]||[]
+    name:s.name,accordCadre:!!s.accord_cadre,catalogue:s.catalogue||"",notes:s.notes||"",website:s.website||"",logo:s.logo_data||"",contacts:by[s.id]||[]
   }));
   populateActivities();render();setSync("Données synchronisées ✓");
 }
@@ -501,7 +502,7 @@ function populateActivities(){
 function render(){
   const act=document.getElementById("activitySelect").value,q=document.getElementById("searchInput").value.trim().toLowerCase();
   let list=db.suppliers.filter(s=>!act||s.activity===act);
-  if(q)list=list.filter(s=>[s.name,s.activity,s.accord,s.notes,s.website||"",...(s.contacts||[]).flatMap(c=>[c.name,c.role,c.email,c.phone])].join(" ").toLowerCase().includes(q));
+  if(q)list=list.filter(s=>[s.name,s.activity,s.accordCadre?"oui":"non",s.catalogue,s.notes,s.website||"",...(s.contacts||[]).flatMap(c=>[c.name,c.role,c.email,c.phone])].join(" ").toLowerCase().includes(q));
   document.getElementById("stats").textContent=`${list.length} fournisseur${list.length>1?"s":""}`;
   document.getElementById("addSupplierBtn").style.display=editor()?"":"none";
   document.getElementById("addActivityBtn").style.display=editor()?"":"none";
@@ -512,7 +513,7 @@ function render(){
     return `<article class="card">
       <div class="activity-icon">${activityIconSVG(s.activity)}</div>
       <h3>${esc(s.name)}</h3><div class="muted">${esc(s.activity)}</div>
-      ${s.accord?`<div class="badge">${esc(s.accord)}</div>`:""}
+      <div class="badge">Accord cadre : ${s.accordCadre ? "Oui" : "Non"}</div>${s.catalogue ? `<div class="badge">Catalogue : ${esc(s.catalogue)}</div>` : ""}
       ${url?`<div class="website-line">Site web : <a href="${esc(url)}" target="_blank" rel="noopener">${esc(domain)} ↗</a></div>`:""}
       ${s.logo?`<div class="manual-logo-card"><img src="${s.logo}" alt="Logo ${esc(s.name)}"></div>`:""}
       <button class="contacts-toggle" onclick="toggleContacts('${s.id}')">Contacts (${count})</button>
@@ -535,14 +536,26 @@ async function addActivity(){
 
 function supplierModal(supplier=null){
   if(!editor())return;
-  const editing=!!supplier,s=supplier?structuredClone(supplier):{id:null,activity:document.getElementById("activitySelect").value||db.activities[0]?.name||"",name:"",accord:"",notes:"",website:"",logo:"",contacts:[]};
+  const editing=!!supplier,s=supplier?structuredClone(supplier):{id:null,activity:document.getElementById("activitySelect").value||db.activities[0]?.name||"",name:"",accordCadre:false,catalogue:"",notes:"",website:"",logo:"",contacts:[]};
   const root=document.getElementById("modalRoot");
   root.innerHTML=`<div class="modal-bg"><div class="modal">
   <h2>${editing?"Modifier le fournisseur":"Ajouter un fournisseur"}</h2>
   <div class="grid2">
     <div><label>Activité</label><select id="mActivity">${db.activities.map(a=>`<option value="${a.id}" ${a.name===s.activity?"selected":""}>${esc(a.name)}</option>`).join("")}</select></div>
     <div><label>Fournisseur</label><input id="mName" value="${esc(s.name)}"></div>
-    <div><label>Accord cadre</label><select id="mAccord"><option value="">Aucun</option><option ${s.accord==="Punchout"?"selected":""}>Punchout</option><option value="Catalogue interne" ${s.accord==="Catalogue interne"?"selected":""}>Catalogue interne</option></select></div>
+    <div><label>Accord cadre</label>
+      <select id="mAccordCadre">
+        <option value="false" ${!s.accordCadre?"selected":""}>Non</option>
+        <option value="true" ${s.accordCadre?"selected":""}>Oui</option>
+      </select>
+    </div>
+    <div><label>Catalogue</label>
+      <select id="mCatalogue">
+        <option value="" ${!s.catalogue?"selected":""}>Aucun</option>
+        <option value="Catalogue interne" ${s.catalogue==="Catalogue interne"?"selected":""}>Catalogue interne</option>
+        <option value="Punchout" ${s.catalogue==="Punchout"?"selected":""}>Punchout</option>
+      </select>
+    </div>
     <div><label>Notes / Adresse</label><input id="mNotes" value="${esc(s.notes)}"></div>
     <div><label>Site web / domaine</label><input id="mWebsite" placeholder="ex. rexel.fr" value="${esc(s.website||"")}"></div>
     <div><label>Logo fournisseur</label><input id="mLogoFile" type="file" accept="image/png,image/jpeg,image/webp,image/svg+xml"><div id="logoPreviewWrap" class="${s.logo?"":"hidden"}"><img id="logoPreview" class="logo-preview" src="${s.logo||""}"></div><button type="button" class="secondary" id="removeLogoBtn">Retirer le logo</button></div>
@@ -563,7 +576,7 @@ function supplierModal(supplier=null){
   document.getElementById("removeLogoBtn").onclick=()=>{logoData="";document.getElementById("logoPreviewWrap").classList.add("hidden");};
   document.getElementById("saveBtn").onclick=async()=>{
     const name=document.getElementById("mName").value.trim();if(!name)return alert("Nom obligatoire.");
-    const payload={activity_id:document.getElementById("mActivity").value,name,accord:document.getElementById("mAccord").value,notes:document.getElementById("mNotes").value.trim(),website:document.getElementById("mWebsite").value.trim(),logo_data:logoData};
+    const payload={activity_id:document.getElementById("mActivity").value,name,accord_cadre:document.getElementById("mAccordCadre").value==="true",catalogue:document.getElementById("mCatalogue").value,notes:document.getElementById("mNotes").value.trim(),website:document.getElementById("mWebsite").value.trim(),logo_data:logoData};
     let id=s.id;
     if(editing){let r=await sb.from("suppliers").update(payload).eq("id",s.id);if(r.error)return alert(r.error.message);r=await sb.from("contacts").delete().eq("supplier_id",s.id);if(r.error)return alert(r.error.message);}
     else{const r=await sb.from("suppliers").insert(payload).select("id").single();if(r.error)return alert(r.error.message);id=r.data.id;}
